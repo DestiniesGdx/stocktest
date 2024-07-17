@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Trading Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
+</head>
+<body>
+    <script>
+        var lastTime = 0;
+        var updateInterval = 1000;
+        var currentDay = 0;
+        var graphics;
+        var stockData;
+        var priceText, dateText;
+        var playerCash = 1000; // 玩家初始现金
+        var playerStocks = 0; // 玩家持有的股票数量
+        var totalAssetsText;
+
+
+        var config = {
+            type: Phaser.AUTO,
+            width: 1024,
+            height: 768,
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        var game = new Phaser.Game(config);
+
+        function preload() {
+            this.load.image('background', '/src/assets/img/stock_background.png');
+            this.load.json('stockData', '/src/assets/json/stock_data1.json');
+        }
+
+        function create() {
+            this.add.image(512, 384, 'background');
+            stockData = this.cache.json.get('stockData');
+            graphics = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00 } });
+
+            // 初始化文本
+            priceText = this.add.text(100, 50, '', { fill: '#fff' });
+            dateText = this.add.text(100, 70, '', { fill: '#fff' });
+            cashText = this.add.text(100, 90, '', { fill: '#fff' });
+            stockText = this.add.text(100, 110, '', { fill: '#fff' });
+            totalAssetsText = this.add.text(100, 130, '', { fill: '#fff' });
+
+            drawChart();
+            updateText();
+
+            // 添加买入按钮
+            var buyButton = this.add.text(800, 50, 'BUY', { fill: '#0f0' })
+                .setInteractive()
+                .on('pointerdown', () => buyStock());
+
+            // 添加卖出按钮
+            var sellButton = this.add.text(900, 50, 'SELL', { fill: '#f00' })
+                .setInteractive()
+                .on('pointerdown', () => sellStock());
+        }
+
+        function buyStock() {
+            var stockPrice = stockData[currentDay].close;
+            if (playerCash >= stockPrice) {
+                playerCash -= stockPrice;
+                playerStocks++;
+                updateText();
+            }
+        }
+
+        function sellStock() {
+            if (playerStocks > 0) {
+                playerCash += stockData[currentDay].close;
+                playerStocks--;
+                updateText();
+            }
+        }
+
+
+        function update(time) {
+            if (time - lastTime > updateInterval*2) {
+                lastTime = time;
+                currentDay++;
+                if (currentDay >= stockData.length) {
+                    currentDay = 0;
+                }
+                drawChart();
+                updateText();
+            }
+        }
+
+        function updateText() {
+            priceText.setText(`PRICE: ${stockData[currentDay].close}`);
+            dateText.setText(`DATE: ${stockData[currentDay].date}`);
+            cashText.setText(`CACH: ${playerCash.toFixed(2)}`);
+            stockText.setText(`STOCK: ${playerStocks}`);
+            var totalAssets = playerCash + (playerStocks * stockData[currentDay].close);
+            totalAssetsText.setText(`ASSET: ${totalAssets.toFixed(2)}`);
+        }
+
+        function drawChart() {
+            graphics.clear();
+            var prevX = 100;
+            var prevY = 600 - stockData[0].close;
+            for (var i = 1; i <= currentDay; i++) {
+                var x = 100 + i * 10;
+                var y = 600 - stockData[i].close;
+                graphics.strokeLineShape(new Phaser.Geom.Line(prevX, prevY, x, y));
+                prevX = x;
+                prevY = y;
+            }
+        }
+    </script>
+</body>
+</html>

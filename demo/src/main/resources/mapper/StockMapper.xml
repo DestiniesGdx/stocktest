@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.stock.demo.mapper.StockMapper">
+ 
+    <resultMap id="BaseResultMap" type="com.stock.demo.entity.Stock">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="symbol" jdbcType="VARCHAR" property="symbol"/>
+        <result column="date" jdbcType="DATE" property="date"/>
+        <result column="open" jdbcType="FLOAT" property="open"/>
+        <result column="high" jdbcType="FLOAT" property="high"/>
+        <result column="low" jdbcType="FLOAT" property="low"/>
+        <result column="close" jdbcType="FLOAT" property="close"/>
+        <result column="volume" jdbcType="INTEGER" property="volume"/>
+    </resultMap>
+
+    <select id="queryStock" parameterType="java.lang.String" resultType="Stock">
+        SELECT * FROM kline_data where symbol = #{symbol}
+    </select>
+</mapper>
